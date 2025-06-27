@@ -8,7 +8,7 @@ const App = () => {
 
   const getData = async () => {
     try {
-      const response = await axios('https://jsonplaceholder.typicode.com/posts');
+      const response = await axios.get('https://jsonplaceholder.typicode.com/posts');
       setData(response.data);
     } catch (error) {
       console.error('API Error', error);
@@ -43,6 +43,7 @@ export default App;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor : "white",
     paddingTop: 40,
     paddingHorizontal: 10,
   },
