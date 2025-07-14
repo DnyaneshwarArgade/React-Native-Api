@@ -1,62 +1,105 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView } from 'react-native';
+import {
+  StyleSheet, Text, View, TextInput,
+  TouchableOpacity, Image, Modal, Alert
+} from 'react-native';
 
-const App = () => {
-  const [name, setName] = useState('');
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import Home from './Screens/Home';
+import Icon from 'react-native-vector-icons/FontAwesome'
+
+const Stack = createNativeStackNavigator();
+
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
-  const [responses, setResponses] = useState([]);
+  const [password, setPassword] = useState('');
 
   const handleSubmit = () => {
-    fetch('https://jsonplaceholder.typicode.com/posts', {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter email and password');
+      return;
+    }
+
+    fetch('https://onlinetradings.in/batla-backend/public/api/auth/login', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name: name,
-        email: email,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
     })
-      .then(res => res.json())
-      .then(data => {
-        console.log('Response:', data);
-        setResponses(prev => [...prev, data]);
-        setName('');
-        setEmail('');
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success) {
+          Alert.alert(data.message);
+          navigation.replace('Home');
+          setEmail('');
+          setPassword('');
+        } else {
+          Alert.alert(data.message);
+        }
       })
-      .catch(error => {
-        console.error('Error:', error);
-        Alert.alert('Error', 'Something went wrong while submitting');
+      .catch((error) => {
+        console.error('Login Error:', error);
+        Alert.alert('Error', 'Something went wrong.');
       });
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TextInput
-        placeholder="Enter name"
-        value={name}
-        onChangeText={text => setName(text)}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Enter email"
-        value={email}
-        onChangeText={text => setEmail(text)}
-        style={styles.input}
-      />
-      <Button title="Submit" onPress={handleSubmit} />
+    <View style={styles.container}>
+      <View style={styles.card}>
+        <Image
+          source={{ uri: 'https://cdn-icons-png.flaticon.com/512/6681/6681204.png' }}
+          style={styles.image}
+        />
+        <Text style={styles.labeltext}>Email :</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Text style={styles.labeltext}>Password :</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Password"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSubmit}>
+          <Text style={styles.logintext}>Login</Text>
+        </TouchableOpacity>
 
-      {responses.length > 0 && (
-        <View style={styles.result}>
-          <Text style={styles.text}>All Submitted Responses:</Text>
-          {responses.map((item, index) => (
-            <Text key={index} style={styles.responseText}>
-              {JSON.stringify(item, null, 2)}
-            </Text>
-          ))}
+        <View style={styles.iconview}>
+          <Icon.Button
+            name="facebook"
+            backgroundColor="#3b5998"
+             style={styles.iconbutton}
+          >
+          Facebook
+          </Icon.Button>
+
+          <Icon.Button
+          style={styles.iconbutton}
+            name="google"
+            backgroundColor="#DB4437"
+          >Google</Icon.Button>
+
         </View>
-      )}
-    </ScrollView>
+
+      </View>
+    </View>
+  );
+};
+
+const App = () => {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 };
 
@@ -64,28 +107,57 @@ export default App;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 20,
-    paddingTop: 60,
+  },
+  card: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6.65,
+    elevation: 8,
+    alignItems: 'center',
+  },
+  image: {
+    height: 100,
+    width: 100,
+    marginBottom: 20
+  },
+  labeltext: {
+    fontSize: 16,
+    alignSelf: 'flex-start',
+    marginTop: 20
   },
   input: {
-    borderWidth: 1,
-    marginBottom: 10,
-    padding: 10,
-    borderColor: '#888',
-    borderRadius: 5,
+    width: '100%',
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#f2f2f2',
+    marginTop: 10,
   },
-  result: {
+  button: {
+    backgroundColor: 'orange',
+    padding: 12,
+    borderRadius: 10,
     marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
-  text: {
-    fontWeight: 'bold',
-    marginBottom: 10,
+  logintext: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold'
   },
-  responseText: {
-    marginBottom: 10,
-    backgroundColor: '#f0f0f0',
-    padding: 8,
-    borderRadius: 4,
-    fontSize: 12,
+  iconview: {
+    flexDirection: "row",
+    gap : 10,
+    marginTop  : 12
   },
+ 
 });
